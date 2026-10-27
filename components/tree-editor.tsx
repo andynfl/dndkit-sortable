@@ -1,6 +1,7 @@
 'use client';
 import { Fragment, useRef, useState, useEffect } from 'react';
 
+import useControllableState from '@/lib/hooks/use-controllable-state';
 import {
   ROOT_TREE_ID,
   insertNode,
@@ -33,23 +34,29 @@ interface TreeEditorProps<T extends Node> extends TreeEditorOptions {
   onChange?(value: T): void;
 }
 
+const defaultValue: Node = {
+  id: ROOT_TREE_ID,
+  title: 'Tree',
+  children: [],
+};
+
 export default function TreeEditor<T extends Node>({
-  value = { id: ROOT_TREE_ID, title: 'Tree', children: [] } as unknown as T,
+  value,
   maxDepth = Infinity,
   onChange,
 }: TreeEditorProps<T>) {
-  const [state, dispatch] = useState(() => toState(value, maxDepth));
-
-  useEffect(() => {
-    onChange?.(fromState(state, value));
-  }, [state]);
+  const [state, dispatch] = useControllableState({
+    value: value ? toState(value, maxDepth) : value,
+    defaultValue: toState(defaultValue as T, maxDepth),
+    onChange,
+  });
 
   function updateChildren(updater: (children?: Node[]) => Node[]) {
     dispatch((s) => {
       const nextChildren = updater(s.children);
 
       if (nextChildren === s.children) return s;
-      return { ...s, children: nextChildren };
+      return fromState({ ...s, children: nextChildren }, value ?? (defaultValue as T));
     });
   }
 

@@ -44,40 +44,35 @@ export default function TreeEditor<T extends Node>({
     onChange?.(fromState(state, value));
   }, [state]);
 
+  function updateChildren(updater: (children?: Node[]) => Node[]) {
+    dispatch((s) => {
+      const nextChildren = updater(s.children);
+
+      if (nextChildren === s.children) return s;
+      return { ...s, children: nextChildren };
+    });
+  }
+
   const adapter: Sortable.Adapter<Node> = {
     getNode(treeId, nodeId) {
       return getNodeChildren(state.children ?? [], treeId)?.find((it) => it.id === nodeId);
     },
 
     onMove(event) {
-      dispatch((s) => {
-        const nextChildren = moveNode(event, s.children ?? []);
-
-        if (nextChildren === s.children) return s;
-        return { ...s, children: nextChildren };
-      });
+      updateChildren((children = []) => moveNode(event, children));
     },
   };
 
   function onInsert(event: InsertEvent<T>) {
-    dispatch((s) => ({
-      ...s,
-      children: insertNode(event, s.children ?? []),
-    }));
+    updateChildren((children = []) => insertNode(event, children));
   }
 
   function onUpdate(event: UpdateEvent<T>) {
-    dispatch((s) => ({
-      ...s,
-      children: updateNode(event, s.children ?? []),
-    }));
+    updateChildren((children = []) => updateNode(event, children));
   }
 
   function onRemove(event: RemoveEvent) {
-    dispatch((s) => ({
-      ...s,
-      children: removeNode(event, s.children ?? []),
-    }));
+    updateChildren((children = []) => removeNode(event, children));
   }
 
   const input = useNodeInput({ onInsert, onUpdate });

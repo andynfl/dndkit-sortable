@@ -133,6 +133,10 @@ export function getNodeChildren<T extends Node>(nodes: T[], id: string): T[] | u
   return findNode(nodes, id)?.children as T[];
 }
 
+export function getNode<T extends Node>(nodes: T[], id: string): T | undefined {
+  return findNode(nodes, id);
+}
+
 // Helpers ////////////////////////////////////////////////////////////////////////////////////////
 
 function setNodeChildren<T extends Node>(nodes: T[], id: string, children: T[]): T[] {
